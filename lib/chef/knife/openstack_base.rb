@@ -57,7 +57,8 @@ class Chef
       def connection
         @connection ||= begin
           connection = Fog::Compute.new(
-            :provider => 'OpenStack',
+            :provider => 'openstack',
+            :openstack_tenant => Chef::Config[:knife][:openstack_tenant],
             :openstack_username => Chef::Config[:knife][:openstack_username],
             :openstack_api_key => Chef::Config[:knife][:openstack_password],
             :openstack_auth_url => Chef::Config[:knife][:openstack_auth_url]
@@ -94,5 +95,3 @@ class Chef
     end
   end
 end
-
-

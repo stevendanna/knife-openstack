@@ -46,7 +46,11 @@ class Chef
           server_list << server.id.to_s
           server_list << server.name
           server_list << server.public_ip_address['addr'].to_s
-          server_list << server.private_ip_address['addr'].to_s
+          server_list << if server.private_ip_address
+                           server.private_ip_address['addr'].to_s
+                         else
+                           ""
+                         end
           server_list << server.flavor['id'].to_s
           server_list << server.image['id'].to_s
           server_list << server.key_name
@@ -68,5 +72,3 @@ class Chef
     end
   end
 end
-
-

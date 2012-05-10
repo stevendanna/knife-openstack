@@ -149,6 +149,7 @@ class Chef
 
         connection = Fog::Compute.new(
           :provider => 'OpenStack',
+          :openstack_tenant => Chef::Config[:knife][:openstack_tenant],
           :openstack_username => Chef::Config[:knife][:openstack_username],
           :openstack_api_key => Chef::Config[:knife][:openstack_password],
           :openstack_auth_url => Chef::Config[:knife][:openstack_auth_url]
@@ -167,7 +168,16 @@ class Chef
       Chef::Log.debug("Flavor #{locate_config_value(:flavor)}")
       #Chef::Log.debug("Groups #{config[:security_groups]}")
       Chef::Log.debug("Creating server #{server_def}")
+
       server = connection.servers.create(server_def)
+      msg_pair("Instance ID", server.id)
+      msg_pair("Instance Name", server.name)
+
+      # When the API first returns, it only has the name and instance ID.
+      # Lets just wait until it is ready.  We need to wait until it is ready to show more information
+      print "\n#{ui.color("Waiting for server", :magenta)}"
+      server.wait_for { print "."; ready? }
+      puts("\n")
 
       msg_pair("Instance ID", server.id)
       msg_pair("Instance Name", server.name)
@@ -175,17 +185,10 @@ class Chef
       msg_pair("Image", server.image['id'])
       #msg_pair("Security Groups", server.groups.join(", "))
       msg_pair("SSH Keypair", server.key_name)
-
-      print "\n#{ui.color("Waiting for server", :magenta)}"
-
-      # wait for it to be ready to do stuff
-      server.wait_for { print "."; ready? }
-
-      puts("\n")
-
       msg_pair("Public IP Address", server.public_ip_address['addr'])
-      msg_pair("Private IP Address", server.private_ip_address['addr'])
-
+      if server.private_ip_address
+        msg_pair("Private IP Address", server.private_ip_address['addr'])
+      end
       print "\n#{ui.color("Waiting for sshd", :magenta)}"
 
       print(".") until tcp_test_ssh(server.public_ip_address['addr']) {
@@ -203,7 +206,9 @@ class Chef
       #msg_pair("Security Groups", server.groups.join(", "))
       msg_pair("SSH Keypair", server.key_name)
       msg_pair("Public IP Address", server.public_ip_address['addr'])
-      msg_pair("Private IP Address", server.private_ip_address['addr'])
+      if server.private_ip_address
+        msg_pair("Private IP Address", server.private_ip_address['addr'])
+      end
       msg_pair("Environment", config[:environment] || '_default')
       msg_pair("Run List", config[:run_list].join(', '))
     end

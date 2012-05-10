@@ -34,10 +34,7 @@ class Chef
         image_list = [
           ui.color('ID', :bold),
           ui.color('Name', :bold),
-          # ui.color('Kernel ID', :bold),
-          # ui.color('Architecture', :bold),
-          # ui.color('Root Store', :bold),
-          # ui.color('Location', :bold)
+          ui.color('Status', :bold)
         ]
 
         connection.images.sort_by do |image|
@@ -45,17 +42,14 @@ class Chef
         end.each do |image|
           image_list << image.id
           image_list << image.name
-          # image_list << image.kernel_id
-          # image_list << image.architecture
-          # image_list << image.root_device_type
-          # image_list << image.location
+          image_list << image.status
         end
 
         image_list = image_list.map do |item|
           item.to_s
         end
 
-        puts ui.list(image_list, :uneven_columns_across, 2)
+        puts ui.list(image_list, :uneven_columns_across, 3)
       end
     end
   end
